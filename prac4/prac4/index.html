@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+    
+</head>
+<body>
+    <div>
+        <h2>NBA Players</h2>
+        <ul id="players" />
+    </div>
+
+    <div>
+        <h2>Search or Delete Player</h2>
+        <select id="option">
+            <option value="id" selected>ID</option>
+            <option value="name">Name</option>
+        </select>
+        <input type="text" id="valueInput" />
+        <input type="button" value="Search" onclick="searchPlayer();" />
+        <input type="button" value="Delete" onclick="deletePlayer();" />
+        <ul id="searchPlayers"></ul>
+        <p id="status"></p>
+    </div>
+
+    <div>
+        <h2>Player Registration</h2>
+
+        <p>Registration ID:</p>
+        <input type="text" id="playerId" />
+        <p>First Name:</p>
+        <input type="text" id="playerFirst" />
+        <p>Last Name:</p>
+        <input type="text" id="playerLast" />
+        <p>Team Name:</p>
+        <input type="text" id="playerTeam" />
+        <p>Date of Birth:</p>
+        <input type="date" id="playerDate" />
+        <br />
+        <br />
+        <input type="button" value="Player Registration" onclick="registration();" />
+        <p id="status2"></p>
+</div>
+
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script >
+        var url = "api/player";
+
+        $(document).ready(function () {
+            displayAll();
+
+        });
+        function displayAll() {
+            $.ajax({
+                type: 'GET',
+                url: url,
+                success: function (data) {
+                    displayData(data);
+                }
+            })
+        }
+
+        function displayData(data) {
+            $('#players').empty();
+
+            $.each(data, function (key, item) {
+                var lines = item.Registration_ID + ", " + item.Player_name + ", " + item.Team_name + ", " + item.Date_of_birth.toString();
+                $('<li>', { text: lines }).appendTo($('#players'));
+            });
+        }
+
+        function displaySearch(data) {
+            $('#searchPlayers').empty();
+
+            $.each(data, function (key, item) {
+                var lines = item.Registration_ID + ", " + item.Player_name + ", " + item.Team_name + ", " + item.Date_of_birth.toString();
+                $('<li>', { text: lines }).appendTo($('#searchPlayers'));
+            });
+        }
+
+        function searchPlayer() {
+            var value = $('#valueInput').val();
+            var option = $('#option').val();
+            if (value == "" || value == null) {
+                $('#status').text("The input is empty");
+                $('#searchPlayers').empty();
+            }
+            else {
+                $.ajax({
+                    type: "GET",
+                    url: url + "/" + option + "/" + value,
+                    success: function (data) {
+                        displaySearch(data);
+                        $('#status').empty();
+                    },
+                    error: function (jqXHR, textStatus, err) {
+                        console.log(jqXHR);      
+                        $('#status').text("Error: " + err);
+                        $('#searchPlayers').empty();
+                            
+                        
+                        
+                    }
+                })
+            }
+            
+        }
+        function deletePlayer() {
+            var value = $('#valueInput').val();
+            var option = $('#option').val();
+            if (value == "" || value == null) {
+                $('#status').text("The input is empty");
+            }
+            else {
+                $.ajax({
+                    type: "DELETE",
+                    url: url + "/" + option + "/" + value,
+                    success: function (data) {
+                        $('#status').text(data);
+                        displayAll();
+                    },
+                    error: function (jqXHR, textStatus, err) {
+                        console.log(jqXHR);
+                        $('#status').text("Error: " + err);
+                        $('#searchPlayers').empty();
+
+
+
+                    }
+                })
+            }
+            
+        }
+
+        function registration() {
+            var id = $('#playerId').val();
+            var fname = $('#playerFirst').val() 
+            var lname = $('#playerLast').val();
+            var team = $('#playerTeam').val();
+            var date = $('#playerDate').val();
+
+            if (id == "" || fname == "" || lname == "" || team == "" || date == "") {
+                $('#status2').text("One of the input is empty");
+            }
+            else {
+                var player = {
+                    Registration_ID: id,
+                    Player_name: fname + " " + lname,
+                    Team_name: team,
+                    Date_of_birth: date
+                };
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: player,
+                    dataType: "json",
+                    success: function (data) {
+                        $('#status2').text(data);
+                        displayAll();
+                    }
+                
+                })
+            }
+            
+
+        }
+    </script>
+</body>
+</html>
